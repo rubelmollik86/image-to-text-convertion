@@ -1,25 +1,47 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from "react";
+import Tesseract from "tesseract.js";
 
-function App() {
+const OCRComponent = () => {
+  const [image, setImage] = useState(null);
+  const [textData, setTextData] = useState("");
+
+  // Function to handle image upload
+  const handleImageUpload = async (event) => {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+      setImage(e.target.result);
+    };
+
+    if (file) {
+      reader.readAsDataURL(file);
+
+      try {
+        const {
+          data: { text },
+        } = await Tesseract.recognize(file, "eng");
+        setTextData(text);
+      } catch (error) {
+        console.error("Error occurred during OCR:", error);
+      }
+    }
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <input type="file" accept="image/*" onChange={handleImageUpload} />
+      {image && (
+        <img src={image} alt="Uploaded" style={{ maxWidth: "300px" }} />
+      )}
+      {textData && (
+        <div>
+          <h2>Extracted Text:</h2>
+          <p>{textData}</p>
+        </div>
+      )}
     </div>
   );
-}
+};
 
-export default App;
+export default OCRComponent;
